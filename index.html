@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Allenamento Matematico</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .katex { font-size: 1.6rem !important; }
+    @media (min-width: 768px) { .katex { font-size: 2rem !important; } }
+    .phase-btn.selected-phase {
+      border-color: rgb(5 150 105 / 0.6);
+      background-color: rgb(2 44 34 / 0.3);
+    }
+    #math-expression .katex-display {
+      margin: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-zinc-700">
+
+  <div class="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-12">
+
+    <!-- ── Schermata Configurazione ── -->
+    <section id="screen-config" class="flex flex-1 flex-col justify-center">
+      <header class="mb-12 text-center">
+        <p class="mb-2 text-sm font-medium tracking-widest text-zinc-500 uppercase">Allenamento</p>
+        <h1 class="text-3xl font-light tracking-tight text-zinc-100 md:text-4xl">Matematica</h1>
+        <p class="mt-3 text-zinc-500">Scegli fase e livello di partenza per questa sessione.</p>
+      </header>
+
+      <div class="mb-10">
+        <h2 class="mb-4 text-xs font-medium tracking-wider text-zinc-500 uppercase">Fase</h2>
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <button type="button" data-phase="1"
+            class="phase-btn relative rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-5 text-center transition hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 selected-phase:border-emerald-600/60 selected-phase:bg-emerald-950/30">
+            <span class="block text-lg font-medium">Fase 1</span>
+            <span class="mt-1 block text-xs text-zinc-500">Basi solide</span>
+          </button>
+          <button type="button" data-phase="2"
+            class="phase-btn relative rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-5 text-center transition hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="block text-lg font-medium">Fase 2</span>
+            <span class="mt-1 block text-xs text-zinc-500">Numeri negativi</span>
+          </button>
+          <button type="button" data-phase="3"
+            class="phase-btn relative rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-5 text-center transition hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="block text-lg font-medium">Fase 3</span>
+            <span class="mt-1 block text-xs text-zinc-500">Potenze e radici</span>
+          </button>
+          <button type="button" data-phase="4"
+            class="phase-btn relative rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-5 text-center transition hover:border-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="block text-lg font-medium">Fase 4</span>
+            <span class="mt-1 block text-xs text-zinc-500">Frazioni</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-12">
+        <h2 class="mb-4 text-xs font-medium tracking-wider text-zinc-500 uppercase">Livello di partenza</h2>
+        <div id="level-grid" class="grid grid-cols-5 gap-2 md:gap-3">
+          <!-- generati via JS -->
+        </div>
+      </div>
+
+      <button type="button" id="btn-start"
+        class="w-full rounded-2xl bg-zinc-100 py-4 text-center text-lg font-medium text-zinc-900 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+        Inizia Sessione
+      </button>
+    </section>
+
+    <!-- ── Schermata Allenamento ── -->
+    <section id="screen-training" class="hidden flex flex-1 flex-col">
+      <header class="mb-8 flex items-center justify-between text-sm text-zinc-500">
+        <span>Fase <strong id="training-phase" class="font-medium text-zinc-300">1</strong></span>
+        <span>Livello <strong id="training-level" class="font-medium text-zinc-300">1</strong></span>
+      </header>
+
+      <div id="math-expression"
+        class="my-6 flex min-h-[160px] max-w-full flex-1 items-center justify-center overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/60 px-6 py-8 text-center md:min-h-[220px]">
+      </div>
+
+      <!-- Stato A: Calcolo -->
+      <div id="state-calc" class="mt-8">
+        <button type="button" id="btn-show-result"
+          class="w-full rounded-2xl border border-zinc-700 bg-zinc-900 py-4 text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+          Mostra Risultato
+          <span class="mt-1 block text-xs font-normal text-zinc-600">oppure premi <kbd class="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-400">Spazio</kbd></span>
+        </button>
+      </div>
+
+      <!-- Stato B: Verifica -->
+      <div id="state-verify" class="mt-8 hidden">
+        <div class="mb-8 text-center">
+          <p class="mb-1 text-xs tracking-wider text-zinc-500 uppercase">Risultato</p>
+          <p id="result-value" class="text-5xl font-light text-emerald-400 md:text-6xl"></p>
+          <p id="result-time" class="mt-3 text-sm text-zinc-500"></p>
+        </div>
+
+        <p class="mb-4 text-center text-xs text-zinc-600">Come ti è sembrata? Usa i tasti <kbd class="rounded bg-zinc-800 px-1 text-zinc-400">1</kbd> <kbd class="rounded bg-zinc-800 px-1 text-zinc-400">2</kbd> <kbd class="rounded bg-zinc-800 px-1 text-zinc-400">3</kbd></p>
+
+        <div class="grid gap-3">
+          <button type="button" data-feedback="easier"
+            class="feedback-btn rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-left transition hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="text-zinc-500">1</span>
+            <span class="ml-3 font-medium text-zinc-200">Più Facile</span>
+            <span class="ml-2 text-sm text-zinc-500">−1 o −2 livelli</span>
+          </button>
+          <button type="button" data-feedback="same"
+            class="feedback-btn rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-left transition hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="text-zinc-500">2</span>
+            <span class="ml-3 font-medium text-zinc-200">Uguale</span>
+            <span class="ml-2 text-sm text-zinc-500">stesso livello</span>
+          </button>
+          <button type="button" data-feedback="harder"
+            class="feedback-btn rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-left transition hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+            <span class="text-zinc-500">3</span>
+            <span class="ml-3 font-medium text-zinc-200">Più Difficile</span>
+            <span class="ml-2 text-sm text-zinc-500">+1 livello</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Schermata Completamento Fase ── -->
+    <section id="screen-complete" class="hidden flex flex-1 flex-col items-center justify-center text-center">
+      <div class="mb-2 text-4xl">✓</div>
+      <h2 id="complete-message" class="text-2xl font-light text-zinc-100 md:text-3xl">
+        Complimenti! Hai completato la Fase 1!
+      </h2>
+      <p class="mt-4 max-w-sm text-zinc-500">Hai raggiunto il livello massimo. Ottimo lavoro.</p>
+      <button type="button" id="btn-back-config"
+        class="mt-10 rounded-2xl border border-zinc-700 bg-zinc-900 px-8 py-3 text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500">
+        Torna alla configurazione
+      </button>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // ── Stato applicazione ──
+      const app = {
+        phase: 1,
+        startLevel: 1,
+        currentLevel: 1,
+        trainingState: 'calc', // 'calc' | 'verify'
+        tempoInizio: 0,
+        expression: null,
+      };
+
+      // ── Elementi DOM ──
+      const $ = (sel) => document.querySelector(sel);
+
+      const screenConfig    = $('#screen-config');
+      const screenTraining  = $('#screen-training');
+      const screenComplete  = $('#screen-complete');
+      const stateCalc       = $('#state-calc');
+      const stateVerify     = $('#state-verify');
+      const mathExpression  = $('#math-expression');
+      const trainingPhase   = $('#training-phase');
+      const trainingLevel   = $('#training-level');
+      const resultValue     = $('#result-value');
+      const resultTime      = $('#result-time');
+      const levelGrid       = $('#level-grid');
+      const completeMessage = $('#complete-message');
+
+      // ── Inizializzazione griglia livelli ──
+      function buildLevelGrid() {
+        levelGrid.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.dataset.level = i;
+          btn.textContent = i;
+          btn.className =
+            'level-btn rounded-xl border border-zinc-800 bg-zinc-900 py-3 text-center text-sm font-medium text-zinc-400 transition hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500';
+          btn.addEventListener('click', () => selectLevel(i));
+          levelGrid.appendChild(btn);
+        }
+        selectLevel(1);
+      }
+
+      function selectPhase(phase) {
+        app.phase = phase;
+        document.querySelectorAll('.phase-btn').forEach((btn) => {
+          const active = Number(btn.dataset.phase) === phase;
+          btn.classList.toggle('selected-phase', active);
+          btn.classList.toggle('border-emerald-600/60', active);
+          btn.classList.toggle('bg-emerald-950/30', active);
+          btn.classList.toggle('border-zinc-700', !active);
+          btn.classList.toggle('bg-zinc-900', !active);
+        });
+      }
+
+      function selectLevel(level) {
+        app.startLevel = level;
+        document.querySelectorAll('.level-btn').forEach((btn) => {
+          const active = Number(btn.dataset.level) === level;
+          btn.classList.toggle('border-emerald-600/60', active);
+          btn.classList.toggle('bg-emerald-950/30', active);
+          btn.classList.toggle('text-zinc-100', active);
+          btn.classList.toggle('border-zinc-800', !active);
+          btn.classList.toggle('bg-zinc-900', !active);
+          btn.classList.toggle('text-zinc-400', !active);
+        });
+      }
+
+      // ── Navigazione schermate ──
+      function showScreen(name) {
+        screenConfig.classList.toggle('hidden', name !== 'config');
+        screenTraining.classList.toggle('hidden', name !== 'training');
+        screenComplete.classList.toggle('hidden', name !== 'complete');
+      }
+
+      function setTrainingState(state) {
+        app.trainingState = state;
+        stateCalc.classList.toggle('hidden', state !== 'calc');
+        stateVerify.classList.toggle('hidden', state !== 'verify');
+      }
+
+      function resetTimer() {
+        app.tempoInizio = 0;
+        resultValue.textContent = '';
+        resultTime.textContent = '';
+      }
+
+      // ── Espressione ──
+      function renderExpression(expr) {
+        app.expression = expr;
+        mathExpression.innerHTML = '';
+        try {
+          katex.render(expr.latexString, mathExpression, {
+            displayMode: true,
+            throwOnError: false,
+          });
+        } catch (_) {
+          mathExpression.textContent = expr.rawString;
+        }
+        app.tempoInizio = Date.now();
+      }
+
+      function loadNewExpression() {
+        resetTimer();
+        const expr = generateExpression(app.phase, app.currentLevel);
+        renderExpression(expr);
+        trainingPhase.textContent = app.phase;
+        trainingLevel.textContent = app.currentLevel;
+        setTrainingState('calc');
+      }
+
+      function startSession() {
+        app.currentLevel = app.startLevel;
+        showScreen('training');
+        loadNewExpression();
+      }
+
+      // ── Stato A → B ──
+      function showResult() {
+        if (app.trainingState !== 'calc' || !app.expression || !app.tempoInizio) return;
+
+        const elapsed = Date.now() - app.tempoInizio;
+        const seconds = (elapsed / 1000).toFixed(1);
+        resultValue.textContent = app.expression.result;
+        resultTime.textContent = `Risolto in ${seconds} secondi`;
+        setTrainingState('verify');
+      }
+
+      // ── Feedback livello ──
+      function applyFeedback(type) {
+        if (app.trainingState !== 'verify') return;
+
+        if (type === 'harder') {
+          if (app.currentLevel >= 10) {
+            completeMessage.textContent = `Complimenti! Hai completato la Fase ${app.phase}!`;
+            showScreen('complete');
+            return;
+          }
+          app.currentLevel = Math.min(10, app.currentLevel + 1);
+        } else if (type === 'easier') {
+          const step = Math.random() < 0.5 ? 1 : 2;
+          app.currentLevel = Math.max(1, app.currentLevel - step);
+        }
+        // 'same' → nessuna modifica
+
+        loadNewExpression();
+      }
+
+      // ── Scorciatoie tastiera ──
+      document.addEventListener('keydown', (e) => {
+        if (screenTraining.classList.contains('hidden')) return;
+
+        if (app.trainingState === 'calc' && e.code === 'Space') {
+          e.preventDefault();
+          showResult();
+          return;
+        }
+
+        if (app.trainingState === 'verify') {
+          if (e.key === '1') { e.preventDefault(); applyFeedback('easier'); }
+          if (e.key === '2') { e.preventDefault(); applyFeedback('same'); }
+          if (e.key === '3') { e.preventDefault(); applyFeedback('harder'); }
+        }
+      });
+
+      // ── Eventi UI ──
+      document.querySelectorAll('.phase-btn').forEach((btn) => {
+        btn.addEventListener('click', () => selectPhase(Number(btn.dataset.phase)));
+      });
+
+      $('#btn-start').addEventListener('click', startSession);
+      $('#btn-show-result').addEventListener('click', showResult);
+      $('#btn-back-config').addEventListener('click', () => showScreen('config'));
+
+      document.querySelectorAll('.feedback-btn').forEach((btn) => {
+        btn.addEventListener('click', () => applyFeedback(btn.dataset.feedback));
+      });
+
+      // ── Avvio ──
+      buildLevelGrid();
+      selectPhase(1);
+    })();
+  </script>
+</body>
+</html>
